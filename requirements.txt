@@ -1,0 +1,10 @@
+# Généré et testé le 19 octobre 2026 (installation + résolution de dépendances vérifiées).
+# yfinance reste une bibliothèque non officielle : si l'installation échoue dans
+# quelques semaines, retire la version épinglée de yfinance et relance
+# `pip install -r requirements.txt` pour prendre la dernière version disponible.
+numpy==2.5.4
+scipy==1.18.1
+pandas==3.0.6
+matplotlib==3.11.2
+pytest==9.1.1
+yfinance==1.7.0
