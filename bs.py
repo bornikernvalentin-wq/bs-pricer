@@ -11,7 +11,7 @@ def d1_d2 (S,K,T,r,sigma, q) :
 
 def prix_call (S,K,T,r,sigma,q) : 
     
-    prix = S*np.exp(-q*T)*norm.cdf(d1_d2(S,K,T,r,sigma,q)[0]) - K*np.exp(-r*T)*norm.cdf(d1_d2(S,K,T,r,sigma,q)[1])
+    prix = S*np.exp(q*T)*norm.cdf(d1_d2(S,K,T,r,sigma,q)[0]) - K*np.exp(-r*T)*norm.cdf(d1_d2(S,K,T,r,sigma,q)[1])
     
     return(prix)
 
