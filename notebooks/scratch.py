@@ -10,8 +10,8 @@ sigma = 0.20
 q = 0
 
 
-a = np.linspace(80, 120, 41)
-vi = np.maximum(S-a, 0)
+grilleK = np.linspace(-1, 20, 41)
+vi = np.maximum(S-grilleK, 0)
 
 def d1_d2 (S,K,T,r,sigma, q) : 
     
@@ -23,6 +23,22 @@ def d1_d2 (S,K,T,r,sigma, q) :
 
 def prix_call (S,K,T,r,sigma,q) : 
     
+    if not np.all(S > 0) :
+        raise ValueError("S doit être strictement positif")
+    
+    if not np.all(K > 0) :
+        raise ValueError("K doit être strictement positif")
+   
+    if not np.all(T > 0) : 
+        if T == 0 : 
+            return (np.maximum(S - K, 0)) 
+        raise ValueError("T doit être positif")
+        
+    if not np.all(sigma > 0) : 
+        if sigma == 0 : 
+            return (np.maximum(S*np.exp(-q*T) - K*np.exp(-r*T), 0))
+        raise ValueError("sigma doit être positif")
+    
     prix = S*np.exp(-q*T)*norm.cdf(d1_d2(S,K,T,r,sigma,q)[0]) - K*np.exp(-r*T)*norm.cdf(d1_d2(S,K,T,r,sigma,q)[1])
     
     return(prix)
@@ -33,3 +49,72 @@ def prix_put (S,K,T,r,sigma,q) :
     prix = -S*np.exp(-q*T)*norm.cdf(-d1_d2(S,K,T,r,sigma,q)[0]) + K*np.exp(-r*T)*norm.cdf(-d1_d2(S,K,T,r,sigma,q)[1])
     
     return(prix)
+
+
+def test_pariteCP() : 
+    
+    S = 90
+    K = 105
+    T = 1
+    r = 0.02
+    sigma = 0.25
+    q = 0.01
+    
+    assert(abs(prix_call(S, K, T, r, sigma, q) - prix_put(S, K, T, r, sigma, q) - (S*np.exp(-q*T) - K*np.exp(-r*T)))) < 1e-10
+    
+
+
+def test_bornesC() : 
+    
+    S = 90
+    
+    T = 1
+    r = 0.02
+    sigma = 0.25
+    q = 0.01
+    
+    assert(np.all(S*np.exp(-q*T) > prix_call(S, grilleK, T, r, sigma, q)))
+    assert(np.all(prix_call(S, grilleK, T, r, sigma, q) > np.maximum(S*np.exp(-q*T) - grilleK*np.exp(-r*T),0)))
+
+def test_bornesP() : 
+    
+    S = 90
+    
+    T = 1
+    r = 0.02
+    sigma = 0.25
+    q = 0.01
+    
+    assert(np.all(grilleK*np.exp(-r*T) > prix_put(S, grilleK, T, r, sigma, q)))
+    assert(np.all(prix_put(S, grilleK, T, r, sigma, q) > np.maximum(grilleK*np.exp(-r*T)- S*np.exp(-q*T),0)))
+
+def test_monotonie():
+    
+    S = 90
+    grilleK = np.linspace(80, 120, 41)
+    T = 1
+    r = 0.02
+    sigma = 0.020
+    q = 0.01
+
+    assert(np.all(np.diff(prix_call(S,grilleK,T,r,sigma,q)) <= 0))
+
+    sigma = np.linspace(0.05, 1, 41)
+    K = 105
+    
+    assert(np.all(np.diff(prix_call(S,K,T,r,sigma,q)) >= 0))
+    
+    
+    
+def test_convexite():
+    
+    grilleK = np.linspace(80, 120, 41)
+    S = 90
+    T = 1
+    r = 0.02
+    sigma = 0.20
+    q = 0.01
+    
+    assert(np.all(prix_call(S,grilleK,T,r,sigma,q)[1:-1] <= (prix_call(S,grilleK,T,r,sigma,q)[:-2] + prix_call(S,grilleK,T,r,sigma,q)[2:])/2))
+
+
