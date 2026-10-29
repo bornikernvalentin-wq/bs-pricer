@@ -117,4 +117,60 @@ def test_convexite():
     
     assert(np.all(prix_call(S,grilleK,T,r,sigma,q)[1:-1] <= (prix_call(S,grilleK,T,r,sigma,q)[:-2] + prix_call(S,grilleK,T,r,sigma,q)[2:])/2))
 
+def greeks(option, S, K, T, r, sigma, q) : 
+    if option == "call" : 
+        
+        delta_call = np.exp(-q*T)*norm.cdf(d1_d2(S, K, T, r, sigma, q)[0])
+        
+        gamma_call = (np.exp(-q*T)*norm.pdf(d1_d2(S, K, T, r, sigma, q)[0]))/(S*sigma*np.sqrt(T))
+        
+        theta_call = -(1/2)*(sigma**2)*(S**2)*gamma_call 
+        
+        vega_call = S*np.exp(-q*T)*norm.pdf(d1_d2(S, K, T, r, sigma, q)[0])*np.sqrt(T)
+        
+        return(delta_call, gamma_call, theta_call, vega_call) 
+    
+    if option == "put" :
+        
+        delta_put = delta_call - np.exp(-q*T) 
+        
+        gamma_put = gamma_call
+        
+        theta_put = theta_call - q*S*np.exp(-q*T) + r*K*np.exp(-r*T) 
+        
+        vega_put = vega_call 
+        
+        return(delta_put, gamma_put, theta_put, vega_put) 
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
