@@ -117,30 +117,38 @@ def test_convexite():
     
     assert(np.all(prix_call(S,grilleK,T,r,sigma,q)[1:-1] <= (prix_call(S,grilleK,T,r,sigma,q)[:-2] + prix_call(S,grilleK,T,r,sigma,q)[2:])/2))
 
-def greeks(option, S, K, T, r, sigma, q) : 
-    if option == "call" : 
-        
-        delta_call = np.exp(-q*T)*norm.cdf(d1_d2(S, K, T, r, sigma, q)[0])
-        
-        gamma_call = (np.exp(-q*T)*norm.pdf(d1_d2(S, K, T, r, sigma, q)[0]))/(S*sigma*np.sqrt(T))
-        
-        theta_call = -(1/2)*(sigma**2)*(S**2)*gamma_call 
-        
-        vega_call = S*np.exp(-q*T)*norm.pdf(d1_d2(S, K, T, r, sigma, q)[0])*np.sqrt(T)
-        
-        return(delta_call, gamma_call, theta_call, vega_call) 
+def greeks (option, S, K, T, r, sigma, q) :
     
+    # Entrées : les grecques ne sont définies que pour S, K, T, sigma > 0
+    if option not in ("call", "put") :
+        raise ValueError("option doit valoir 'call' ou 'put'")
+    if not np.all(S > 0) :
+        raise ValueError("S doit être strictement positif")
+    if not np.all(K > 0) :
+        raise ValueError("K doit être strictement positif")
+    if not np.all(T > 0) :
+        raise ValueError("T doit être strictement positif")
+    if not np.all(sigma > 0) :
+        raise ValueError("sigma doit être strictement positif")
+    
+    d1, d2 = d1_d2(S, K, T, r, sigma, q)
+    
+    # Termes qui reviennent
+    A = S*np.exp(-q*T)        # spot actualisé du dividende
+    B = K*np.exp(-r*T)        # strike actualisé
+    
+    # Grecques du call (valeurs brutes : vega pour sigma en décimale, theta par an)
+    delta = np.exp(-q*T)*norm.cdf(d1)
+    gamma = np.exp(-q*T)*norm.pdf(d1)/(S*sigma*np.sqrt(T))
+    vega = A*norm.pdf(d1)*np.sqrt(T)
+    theta = -A*norm.pdf(d1)*sigma/(2*np.sqrt(T)) + q*A*norm.cdf(d1) - r*B*norm.cdf(d2)
+    
+    # Le put se déduit du call par la parité (gamma et vega identiques)
     if option == "put" :
-        
-        delta_put = delta_call - np.exp(-q*T) 
-        
-        gamma_put = gamma_call
-        
-        theta_put = theta_call - q*S*np.exp(-q*T) + r*K*np.exp(-r*T) 
-        
-        vega_put = vega_call 
-        
-        return(delta_put, gamma_put, theta_put, vega_put) 
+        delta = delta - np.exp(-q*T)
+        theta = theta - q*A + r*B
+    
+    return(delta, gamma, theta, vega)
     
     
 
